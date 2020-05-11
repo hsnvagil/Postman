@@ -1,0 +1,510 @@
+﻿<Window x:Class="postman.View.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:postman.ViewModel"
+        xmlns:local="clr-namespace:postman.View"
+        xmlns:dragablz="http://dragablz.net/winfx/xaml/dragablz"
+        mc:Ignorable="d"
+        xmlns:avalonEdit="http://icsharpcode.net/sharpdevelop/avalonedit"
+        xmlns:postman="clr-namespace:postman"
+        xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
+
+        Title="Postman" Height="450" Width="800" Icon="../1_fvbl9mtljmhih6ypu7wvhq_DIx_icon.ico">
+
+    <Window.DataContext>
+        <vm:MainViewModel />
+    </Window.DataContext>
+
+    <Window.Resources>
+        <Style x:Key="ListItemStyle" TargetType="ListViewItem">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type ListViewItem}">
+                        <Border x:Name="bd" BorderBrush="Transparent" BorderThickness="0" Background="Transparent"
+                                Padding="{TemplateBinding Padding}" SnapsToDevicePixels="true">
+                            <GridViewRowPresenter />
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <EventSetter Event="PreviewGotKeyboardFocus" Handler="EventSetter_OnHandlerList" />
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Border BorderBrush="OrangeRed" BorderThickness="1" Margin="5" IsEnabled="{Binding MainGridEnable}">
+            <Grid>
+
+
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="70" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition />
+
+                </Grid.RowDefinitions>
+
+                <Grid Row="0" Margin="8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="130" />
+                        <ColumnDefinition />
+                        <ColumnDefinition Width="130" />
+                    </Grid.ColumnDefinitions>
+
+
+                    <ComboBox Margin="4 22 4 4" ItemsSource="{Binding MethodList}" IsReadOnly="True"
+                              SelectedItem="{Binding Method}" />
+                    <TextBox Grid.Column="1" Margin="4" FontSize="14" VerticalContentAlignment="Bottom"
+                             Padding="4 0 0 0"
+                             Text="{Binding Url,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}">
+                        <i:Interaction.Triggers>
+                            <i:EventTrigger EventName="TextChanged">
+                                <i:InvokeCommandAction
+                                    Command="{Binding DataContext.UrlChanged, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Grid}}}"
+                                    CommandParameter="{Binding}" />
+                            </i:EventTrigger>
+                        </i:Interaction.Triggers>
+                    </TextBox>
+                    <Button Grid.Column="2" Background="#3F5FFF" BorderBrush="#3F5FFF" Margin="4,12,4,4" Content="Send"
+                            FontSize="18" Height="Auto"
+                            Command="{Binding SendRequestCommand}">
+                        <Button.Style>
+                            <Style TargetType="Button" BasedOn="{StaticResource MaterialDesignRaisedDarkButton}">
+                                <Setter Property="IsEnabled" Value="True" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Url.Length}" Value="0">
+                                        <Setter Property="IsEnabled" Value="False" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+                </Grid>
+
+                <dragablz:TabablzControl Grid.Row="1">
+                    <TabItem Header="Params">
+                        <StackPanel Orientation="Vertical">
+                            <Label Content="Query Params" FontSize="15" Margin="5 0 0 0" />
+                            <ListView SelectionMode="Single" ItemContainerStyle="{StaticResource ListItemStyle}"
+                                      ItemsSource="{Binding RequestParamsList, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                      SelectedItem="{Binding RequestParam, Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}"
+                                      MaxHeight="350">
+                                <ListView.View>
+                                    <GridView>
+                                        <GridViewColumn Header="" Width="40">
+                                            <GridViewColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <CheckBox IsChecked="{Binding Active}"
+                                                              Visibility="{Binding Visibility}">
+                                                        <i:Interaction.Triggers>
+                                                            <i:EventTrigger EventName="Checked">
+                                                                <i:InvokeCommandAction
+                                                                    Command="{Binding DataContext.CheckedCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ListView}}}"
+                                                                    CommandParameter="{Binding}" />
+                                                            </i:EventTrigger>
+
+                                                            <i:EventTrigger EventName="Unchecked">
+                                                                <i:InvokeCommandAction
+                                                                    Command="{Binding DataContext.CheckedCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ListView}}}"
+                                                                    CommandParameter="{Binding}" />
+                                                            </i:EventTrigger>
+                                                        </i:Interaction.Triggers>
+                                                    </CheckBox>
+                                                </DataTemplate>
+                                            </GridViewColumn.CellTemplate>
+                                        </GridViewColumn>
+                                        <GridViewColumn Header="Key" Width="325">
+                                            <GridViewColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <TextBox PreviewTextInput="UIElement_OnPreviewTextInput"
+                                                             Text="{Binding Path=Key, Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}"
+                                                             Width="300">
+                                                        <i:Interaction.Triggers>
+                                                            <i:EventTrigger EventName="TextChanged">
+                                                                <i:InvokeCommandAction
+                                                                    Command="{Binding DataContext.RequestParamTextChanged, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ListView}}}"
+                                                                    CommandParameter="{Binding}" />
+                                                            </i:EventTrigger>
+                                                        </i:Interaction.Triggers>
+                                                        <TextBox.Style>
+                                                            <Style TargetType="TextBox"
+                                                                   BasedOn="{StaticResource MaterialDesignTextBox}">
+                                                                <Setter Property="Foreground" Value="Black" />
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding Path=Active}"
+                                                                                 Value="False">
+                                                                        <Setter Property="Foreground" Value="Gray" />
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </TextBox.Style>
+                                                    </TextBox>
+                                                </DataTemplate>
+                                            </GridViewColumn.CellTemplate>
+                                        </GridViewColumn>
+                                        <GridViewColumn Header="Value" Width="325">
+                                            <GridViewColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <TextBox PreviewTextInput="UIElement_OnPreviewTextInput"
+                                                             Text="{Binding Path=Value, Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}"
+                                                             Width="300">
+                                                        <i:Interaction.Triggers>
+                                                            <i:EventTrigger EventName="TextChanged">
+                                                                <i:InvokeCommandAction
+                                                                    Command="{Binding DataContext.RequestParamTextChanged, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ListView}}}"
+                                                                    CommandParameter="{Binding}" />
+                                                            </i:EventTrigger>
+                                                        </i:Interaction.Triggers>
+                                                        <TextBox.Style>
+                                                            <Style TargetType="TextBox"
+                                                                   BasedOn="{StaticResource MaterialDesignTextBox}">
+                                                                <Setter Property="Foreground" Value="Black" />
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding Path=Active}"
+                                                                                 Value="False">
+                                                                        <Setter Property="Foreground" Value="Gray" />
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </TextBox.Style>
+                                                    </TextBox>
+                                                </DataTemplate>
+                                            </GridViewColumn.CellTemplate>
+                                        </GridViewColumn>
+                                        <GridViewColumn Width="60">
+                                            <GridViewColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <Button Name="RemoveButton" Foreground="OrangeRed"
+                                                            Background="Transparent"
+                                                            BorderThickness="0"
+                                                            Content="❌" Visibility="{Binding Visibility}"
+                                                            Command="{Binding DataContext.RemoveRequestParam,RelativeSource={RelativeSource Mode=FindAncestor,AncestorType={x:Type ListView}} }"
+                                                            CommandParameter="{Binding}" />
+                                                </DataTemplate>
+                                            </GridViewColumn.CellTemplate>
+                                        </GridViewColumn>
+                                    </GridView>
+                                </ListView.View>
+                            </ListView>
+                        </StackPanel>
+                    </TabItem>
+                    <TabItem Header="Headers">
+                        <StackPanel>
+                            <Label FontSize="15" Margin="5 0 0 0" Content="Headers" />
+
+                            <ListView SelectionMode="Single" ItemContainerStyle="{StaticResource ListItemStyle}"
+                                      ItemsSource="{Binding RequestHeadersList, Mode=TwoWay,NotifyOnSourceUpdated=True}"
+                                      SelectedItem="{Binding RequestHeader}" MaxHeight="300">
+                                <ListView.View>
+                                    <GridView>
+                                        <GridViewColumn Header="" Width="40">
+                                            <GridViewColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <CheckBox IsChecked="{Binding Active}"
+                                                              Visibility="{Binding Visibility}" />
+                                                </DataTemplate>
+                                            </GridViewColumn.CellTemplate>
+                                        </GridViewColumn>
+                                        <GridViewColumn Header="Key" Width="325">
+                                            <GridViewColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <TextBox
+                                                        Text="{Binding Path=Key, Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}"
+                                                        Width="300">
+                                                        <i:Interaction.Triggers>
+                                                            <i:EventTrigger EventName="TextChanged">
+                                                                <i:InvokeCommandAction
+                                                                    Command="{Binding DataContext.RequestHeaderTextChanged, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ListView}}}"
+                                                                    CommandParameter="{Binding}" />
+                                                            </i:EventTrigger>
+                                                        </i:Interaction.Triggers>
+                                                        <TextBox.Style>
+                                                            <Style TargetType="TextBox"
+                                                                   BasedOn="{StaticResource MaterialDesignTextBox}">
+                                                                <Setter Property="Foreground" Value="Black" />
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding Path=Active}"
+                                                                                 Value="False">
+                                                                        <Setter Property="Foreground" Value="Gray" />
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </TextBox.Style>
+                                                    </TextBox>
+                                                </DataTemplate>
+                                            </GridViewColumn.CellTemplate>
+                                        </GridViewColumn>
+                                        <GridViewColumn Header="Value" Width="325">
+                                            <GridViewColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <TextBox
+                                                        Text="{Binding Path=Value, Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}"
+                                                        Width="300">
+                                                        <i:Interaction.Triggers>
+                                                            <i:EventTrigger EventName="TextChanged">
+                                                                <i:InvokeCommandAction
+                                                                    Command="{Binding DataContext.RequestHeaderTextChanged, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ListView}}}"
+                                                                    CommandParameter="{Binding}" />
+                                                            </i:EventTrigger>
+                                                        </i:Interaction.Triggers>
+                                                        <TextBox.Style>
+                                                            <Style TargetType="TextBox"
+                                                                   BasedOn="{StaticResource MaterialDesignTextBox}">
+                                                                <Setter Property="Foreground" Value="Black" />
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding Path=Active}"
+                                                                                 Value="False">
+                                                                        <Setter Property="Foreground" Value="Gray" />
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </TextBox.Style>
+                                                    </TextBox>
+                                                </DataTemplate>
+                                            </GridViewColumn.CellTemplate>
+                                        </GridViewColumn>
+                                        <GridViewColumn Width="60">
+                                            <GridViewColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <Button Name="RemoveButton" Foreground="OrangeRed"
+                                                            Background="Transparent"
+                                                            BorderThickness="0"
+                                                            Content="❌" Visibility="{Binding Visibility}"
+                                                            Command="{Binding DataContext.RemoveRequestHeader,RelativeSource={RelativeSource Mode=FindAncestor,AncestorType={x:Type ListView}} }"
+                                                            CommandParameter="{Binding}" />
+                                                </DataTemplate>
+                                            </GridViewColumn.CellTemplate>
+                                        </GridViewColumn>
+                                    </GridView>
+                                </ListView.View>
+                            </ListView>
+                        </StackPanel>
+                    </TabItem>
+                    <TabItem Header="Body">
+                        <Grid Height="300">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition />
+                            </Grid.RowDefinitions>
+                            <ComboBox Name="ComboBox" ItemsSource="{Binding ContentList}"
+                                      SelectedItem="{Binding Content}"
+                                      Grid.Row="0"
+                                      Margin="20 10 0 0" Padding="3" Width="70" HorizontalAlignment="Left" />
+                            <avalonEdit:TextEditor Margin="0 8 0 0" Grid.Row="1" ShowLineNumbers="True"
+                                                   Background="WhiteSmoke" LineNumbersForeground="OrangeRed">
+                                <i:Interaction.Behaviors>
+                                    <postman:AvalonEditBehaviour
+                                        GiveMeTheText="{Binding RequestText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                </i:Interaction.Behaviors>
+                                <avalonEdit:TextEditor.Style>
+                                    <Style TargetType="avalonEdit:TextEditor">
+                                        <Setter Property="SyntaxHighlighting" Value="Text" />
+                                        <Setter Property="IsEnabled" Value="True" />
+
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding ElementName=ComboBox, Path=Text}"
+                                                         Value="JSON">
+                                                <Setter Property="SyntaxHighlighting" Value="Json" />
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding ElementName=ComboBox, Path=Text}"
+                                                         Value="XML">
+                                                <Setter Property="SyntaxHighlighting" Value="XML" />
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding Method}" Value="GET">
+                                                <Setter Property="IsEnabled" Value="False" />
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding Method}" Value="DELETE">
+                                                <Setter Property="IsEnabled" Value="False" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </avalonEdit:TextEditor.Style>
+                            </avalonEdit:TextEditor>
+                        </Grid>
+
+                    </TabItem>
+                </dragablz:TabablzControl>
+
+
+                <Grid Row="2">
+                    <Grid.RowDefinitions>
+                        <RowDefinition />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <dragablz:TabablzControl Grid.Row="0">
+                        <TabControl.Style>
+                            <Style TargetType="dragablz:TabablzControl"
+                                   BasedOn="{StaticResource MaterialDesignTabablzControlStyle}">
+                                <Setter Property="Visibility" Value="Hidden" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding ResponsePanelVisibility}" Value="True">
+                                        <Setter Property="Visibility" Value="Visible" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TabControl.Style>
+                        <TabItem Header="Body">
+                            <Grid>
+                                <TabControl>
+                                    <TabControl.Resources>
+                                        <Style TargetType="TabItem">
+                                            <Setter Property="Template">
+                                                <Setter.Value>
+                                                    <ControlTemplate TargetType="TabItem">
+                                                        <Border Name="Border" BorderThickness="1,1,1,0"
+                                                                BorderBrush="Gainsboro" CornerRadius="4,4,0,0"
+                                                                Margin="2,0">
+                                                            <ContentPresenter x:Name="ContentSite"
+                                                                              VerticalAlignment="Center"
+                                                                              HorizontalAlignment="Center"
+                                                                              ContentSource="Header"
+                                                                              Margin="10,2" />
+                                                        </Border>
+                                                        <ControlTemplate.Triggers>
+                                                            <Trigger Property="IsSelected" Value="True">
+                                                                <Setter TargetName="Border" Property="Background"
+                                                                        Value="#ff5429" />
+                                                                <Setter Property="Foreground" Value="White" />
+                                                            </Trigger>
+                                                            <Trigger Property="IsSelected" Value="False">
+                                                                <Setter TargetName="Border" Property="Background"
+                                                                        Value="GhostWhite" />
+                                                            </Trigger>
+                                                        </ControlTemplate.Triggers>
+                                                    </ControlTemplate>
+                                                </Setter.Value>
+                                            </Setter>
+                                        </Style>
+                                    </TabControl.Resources>
+                                    <TabItem Header="Raw">
+                                        <Grid>
+                                            <avalonEdit:TextEditor Margin="5" WordWrap="True" IsReadOnly="True"
+                                                                   ShowLineNumbers="False" SyntaxHighlighting="Text">
+                                                <i:Interaction.Behaviors>
+                                                    <postman:AvalonEditBehaviour
+                                                        GiveMeTheText="{Binding RawText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                                </i:Interaction.Behaviors>
+                                            </avalonEdit:TextEditor>
+                                        </Grid>
+                                    </TabItem>
+                                    <TabItem Header="Preview">
+                                        <Grid>
+                                            <avalonEdit:TextEditor Margin="5" WordWrap="True" IsReadOnly="True"
+                                                                   LineNumbersForeground="OrangeRed"
+                                                                   ShowLineNumbers="True">
+                                                <i:Interaction.Behaviors>
+                                                    <postman:AvalonEditBehaviour
+                                                        GiveMeTheText="{Binding PreviewText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                                </i:Interaction.Behaviors>
+                                                <avalonEdit:TextEditor.Style>
+                                                    <Style TargetType="avalonEdit:TextEditor">
+                                                        <Setter Property="SyntaxHighlighting" Value="JavaScript" />
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding PreviewTextFormat}"
+                                                                         Value="HTML">
+                                                                <Setter Property="SyntaxHighlighting" Value="HTML" />
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding PreviewTextFormat}"
+                                                                         Value="XML">
+                                                                <Setter Property="SyntaxHighlighting" Value="XML" />
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding PreviewTextFormat}"
+                                                                         Value="Json">
+                                                                <Setter Property="SyntaxHighlighting" Value="Json" />
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </avalonEdit:TextEditor.Style>
+                                            </avalonEdit:TextEditor>
+                                        </Grid>
+                                    </TabItem>
+                                </TabControl>
+                            </Grid>
+                        </TabItem>
+                        <TabItem Header="Headers">
+                            <ListView SelectionMode="Single" ItemContainerStyle="{StaticResource ListItemStyle}"
+                                      ItemsSource="{Binding ResponseHeadersList, Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}">
+                                <ListView.View>
+                                    <GridView>
+                                        <GridViewColumn Header="Key" Width="325">
+                                            <GridViewColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <TextBox
+                                                        Text="{Binding Path=Key, Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}"
+                                                        Width="300" IsReadOnly="True" />
+                                                </DataTemplate>
+                                            </GridViewColumn.CellTemplate>
+                                        </GridViewColumn>
+                                        <GridViewColumn Header="Value" Width="325">
+                                            <GridViewColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <TextBox
+                                                        Text="{Binding Path=Value, Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}"
+                                                        Width="300" IsReadOnly="True" />
+                                                </DataTemplate>
+                                            </GridViewColumn.CellTemplate>
+                                        </GridViewColumn>
+                                    </GridView>
+                                </ListView.View>
+                            </ListView>
+                        </TabItem>
+                        <TabItem Header="Web Preview">
+
+                            <WebBrowser
+                                postman:WebBrowserHelper.Url="{Binding WebUrl}" />
+                        </TabItem>
+                    </dragablz:TabablzControl>
+                    <Grid Row="1" Height="25" Background="#E4EEEB">
+                        <Grid.Style>
+                            <Style TargetType="Grid">
+                                <Setter Property="Visibility" Value="Hidden" />
+
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding ResponsePanelVisibility}" Value="True">
+                                        <Setter Property="Visibility" Value="Visible" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Grid.Style>
+                        <StackPanel Orientation="Horizontal" Visibility="{Binding InformationVisibility}"
+                                    HorizontalAlignment="Right">
+                            <Label Margin="25 0 0 0" Foreground="Black">Status</Label>
+                            <Label Foreground="LimeGreen" Content="{Binding StatusCode}" />
+
+                            <Label Margin="25 0 0 0" Foreground="Black">Time</Label>
+                            <Label Foreground="LimeGreen" Content="{Binding Time}" />
+
+                            <Label Margin="25 0 0 0" Foreground="Black">Size</Label>
+                            <Label Foreground="LimeGreen" Content="{Binding ResponseContentSize}" />
+
+                            <Button Content="Save Response" VerticalContentAlignment="Center" Width="100"
+                                    Margin="15 0 15 0" VerticalAlignment="Center" Height="20" FontSize="10"
+                                    Background="#3F5FFF" BorderBrush="#3F5FFF" Command="{Binding SaveResponseCommand}" />
+                        </StackPanel>
+                    </Grid>
+                    <Grid>
+                        <Grid.Style>
+                            <Style TargetType="Grid">
+                                <Setter Property="Visibility" Value="Visible" />
+
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding ResponsePanelVisibility}" Value="True">
+                                        <Setter Property="Visibility" Value="Hidden" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Grid.Style>
+                        <TextBlock Text="{Binding ResponseInfoText}" FontSize="20" Foreground="Gray"
+                                   VerticalAlignment="Center" HorizontalAlignment="Center" />
+                    </Grid>
+                </Grid>
+
+
+            </Grid>
+        </Border>
+
+
+    </Grid>
+</Window>
