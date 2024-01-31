@@ -1,1 +1,0 @@
-2020-05-10 21:17:59.496 +04:00 [DBG] SEND GET REQUEST TO http://google.com/search?q=postman | STATUS CODE 200 OK
